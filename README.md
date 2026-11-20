@@ -3,9 +3,12 @@
 [![Tests](https://img.shields.io/badge/pytest-8%20passed-brightgreen.svg)]()
 [![Python](https://img.shields.io/badge/python-3.12-blue.svg)]()
 [![Framework](https://img.shields.io/badge/UI-Streamlit%20Dark-1E293B.svg)]()
+[![Deploy with Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=KaumudiShinde/ReconX&branch=main&mainModule=app.py)
 
 > **OneLab Internship Assessment Submission:**  
-> *"A payments company's books don't balance at month end. They know every transaction their platform processed. They know what the bank says actually arrived. The two should match. They don't. Find out why. Show them where the gaps are."*
+> *"A payments company's books don't balance at month end. They know every transaction their platform processed. They know what the bank says actually arrived. The two should match. They don't. Find out why. Show them where the gaps are."*  
+> **Repository:** [https://github.com/KaumudiShinde/ReconX](https://github.com/KaumudiShinde/ReconX)  
+> **1-Click Live Deployment:** [Deploy on Streamlit Community Cloud](https://share.streamlit.io/deploy?repository=KaumudiShinde/ReconX&branch=main&mainModule=app.py)
 
 ---
 
@@ -155,16 +158,15 @@ streamlit run app.py
 ```
 Dashboard opens at: `http://localhost:8501`.
 
-### Streamlit Community Cloud Deployment (Free Public Link)
-1. Push this repository to GitHub:
-   ```bash
-   git remote add origin https://github.com/<your-username>/reconx.git
-   git branch -M main
-   git push -u origin main
-   ```
-2. Navigate to [share.streamlit.io](https://share.streamlit.io) and log in with GitHub.
-3. Click **"New app"** $\to$ Select `<your-username>/reconx` $\to$ Set Main file path to `app.py` $\to$ Click **"Deploy"**.
-4. Copy your live URL (e.g. `https://reconx-onelab.streamlit.app`) into your final submission.
+### Streamlit Community Cloud Deployment (Free 1-Click Live Link)
+The repository is live at [https://github.com/KaumudiShinde/ReconX](https://github.com/KaumudiShinde/ReconX).
+
+To complete the 1-click deployment:
+1. Click the pre-filled direct deploy link:  
+   👉 **[Deploy ReconX on Streamlit Cloud](https://share.streamlit.io/deploy?repository=KaumudiShinde/ReconX&branch=main&mainModule=app.py)**
+2. If prompted, sign in with your GitHub account (`KaumudiShinde`).
+3. Click the blue **"Deploy"** button (repository `KaumudiShinde/ReconX`, branch `main`, and main file `app.py` are already pre-filled).
+4. In ~60 seconds, your permanent live link (e.g. `https://reconx-kaumudishinde.streamlit.app`) will be active.
 
 ---
 
