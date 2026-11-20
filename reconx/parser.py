@@ -80,3 +80,4 @@ def parse_bank_csv(content: Union[str, bytes, io.StringIO, io.BytesIO]) -> List[
             )
         )
     return records
+
