@@ -23,9 +23,10 @@ class SyntheticDataGenerator:
       4. A refund with no matching original transaction (Orphaned bank debit / clawback)
     """
 
-    def __init__(self, seed: int = 42, base_count: int = 1000):
+    def __init__(self, seed: int = 42, base_count: int = 1000, plant_gaps: bool = True):
         self.seed = seed
         self.base_count = base_count
+        self.plant_gaps = plant_gaps
         self.fee_rate = Decimal("0.0215")  # 2.15% fee
         random.seed(seed)
 
@@ -120,164 +121,136 @@ class SyntheticDataGenerator:
             )
 
         # ---------------------------------------------------------
-        # 2. Plant Gap 1: A transaction that settled the following month
+        # Plant Gaps (Only if plant_gaps is True)
         # ---------------------------------------------------------
-        # These 2 transactions happen on Oct 31 right before midnight.
-        # Bank settles on Nov 2 (T+2 after weekend).
-        gap1_txns = [
-            ("TXN_GAP1_OCT31_001", "ORD_99001", Decimal("350.00"), datetime(2026, 10, 31, 23, 15, 0), date(2026, 11, 2)),
-            ("TXN_GAP1_OCT31_002", "ORD_99002", Decimal("180.50"), datetime(2026, 10, 31, 23, 50, 0), date(2026, 11, 2)),
-        ]
-        
-        for tx_id, ord_id, gross, tx_time, stl_date in gap1_txns:
-            fee = round_curr(gross * self.fee_rate)
-            net = gross - fee
+        if self.plant_gaps:
+            # 2. Plant Gap 1: A transaction that settled the following month
+            gap1_txns = [
+                ("TXN_GAP1_OCT31_001", "ORD_99001", Decimal("350.00"), datetime(2026, 10, 31, 23, 15, 0), date(2026, 11, 2)),
+                ("TXN_GAP1_OCT31_002", "ORD_99002", Decimal("180.50"), datetime(2026, 10, 31, 23, 50, 0), date(2026, 11, 2)),
+            ]
             
-            internal_tx = InternalTransaction(
-                transaction_id=tx_id,
-                order_id=ord_id,
-                customer_id="CUST_FLOAT",
-                timestamp=tx_time,
+            for tx_id, ord_id, gross, tx_time, stl_date in gap1_txns:
+                fee = round_curr(gross * self.fee_rate)
+                net = gross - fee
+                
+                internal_tx = InternalTransaction(
+                    transaction_id=tx_id,
+                    order_id=ord_id,
+                    customer_id="CUST_FLOAT",
+                    timestamp=tx_time,
+                    type="PAYMENT",
+                    gross_amount=gross,
+                    expected_fee=fee,
+                    expected_net=net,
+                    status="SUCCESS",
+                )
+                bank_rec = BankSettlementRecord(
+                    settlement_id=f"STL_{tx_id}",
+                    bank_reference=tx_id,
+                    settlement_date=stl_date,  # November 2nd!
+                    type="CREDIT",
+                    settled_gross=gross,
+                    bank_fee=fee,
+                    settled_net=net,
+                    bank_status="SETTLED",
+                )
+                
+                internal_txns.append(internal_tx)
+                bank_records.append(bank_rec)
+                planted_metadata["gap_1_following_month"].append({
+                    "transaction_id": tx_id,
+                    "gross_amount": float(gross),
+                    "timestamp": tx_time.isoformat(),
+                    "settlement_date": stl_date.isoformat(),
+                })
+
+            # 3. Plant Gap 2: Rounding difference that ONLY shows when summed
+            rounding_drift_count = min(43, max(5, self.base_count // 10))
+            eligible_indices = list(range(min(5, len(bank_records)), len(bank_records)))
+            affected_indices = random.sample(eligible_indices, min(rounding_drift_count, len(eligible_indices)))
+
+            for idx in affected_indices:
+                old_bank_fee = bank_records[idx].bank_fee
+                new_bank_fee = old_bank_fee - Decimal("0.01")
+                bank_records[idx].bank_fee = new_bank_fee
+                bank_records[idx].settled_net = bank_records[idx].settled_gross - new_bank_fee
+
+                planted_metadata["gap_2_rounding_drift"]["affected_tx_ids"].append(
+                    bank_records[idx].bank_reference
+                )
+
+            planted_metadata["gap_2_rounding_drift"]["drift_amount"] = Decimal(str(len(affected_indices) * 0.01))
+
+            # 4. Plant Gap 3: Duplicate entry in one dataset
+            dup_gross = Decimal("145.00")
+            dup_fee = round_curr(dup_gross * self.fee_rate)
+            dup_net = dup_gross - dup_fee
+            
+            dup_original = InternalTransaction(
+                transaction_id="TXN_GAP3_DUP_ORIGINAL",
+                order_id="ORD_DUP_888",
+                customer_id="CUST_DUP",
+                timestamp=datetime(2026, 10, 15, 14, 20, 0),
                 type="PAYMENT",
-                gross_amount=gross,
-                expected_fee=fee,
-                expected_net=net,
+                gross_amount=dup_gross,
+                expected_fee=dup_fee,
+                expected_net=dup_net,
                 status="SUCCESS",
             )
-            bank_rec = BankSettlementRecord(
-                settlement_id=f"STL_{tx_id}",
-                bank_reference=tx_id,
-                settlement_date=stl_date,  # November 2nd!
+            dup_clone = InternalTransaction(
+                transaction_id="TXN_GAP3_DUP_RETRY",
+                order_id="ORD_DUP_888",  # Same order_id!
+                customer_id="CUST_DUP",
+                timestamp=datetime(2026, 10, 15, 14, 20, 0),
+                type="PAYMENT",
+                gross_amount=dup_gross,
+                expected_fee=dup_fee,
+                expected_net=dup_net,
+                status="SUCCESS",
+            )
+            
+            dup_bank_rec = BankSettlementRecord(
+                settlement_id="STL_GAP3_DUP_ORIGINAL",
+                bank_reference="TXN_GAP3_DUP_ORIGINAL",
+                settlement_date=date(2026, 10, 16),
                 type="CREDIT",
-                settled_gross=gross,
-                bank_fee=fee,
-                settled_net=net,
+                settled_gross=dup_gross,
+                bank_fee=dup_fee,
+                settled_net=dup_net,
                 bank_status="SETTLED",
             )
             
-            internal_txns.append(internal_tx)
-            bank_records.append(bank_rec)
-            planted_metadata["gap_1_following_month"].append({
-                "transaction_id": tx_id,
-                "gross_amount": float(gross),
-                "timestamp": tx_time.isoformat(),
-                "settlement_date": stl_date.isoformat(),
+            internal_txns.append(dup_original)
+            internal_txns.append(dup_clone)
+            bank_records.append(dup_bank_rec)
+            
+            planted_metadata["gap_3_duplicate_internal"].append({
+                "original_tx_id": dup_original.transaction_id,
+                "duplicate_tx_id": dup_clone.transaction_id,
+                "order_id": "ORD_DUP_888",
+                "duplicate_gross_amount": float(dup_gross),
             })
 
-        # ---------------------------------------------------------
-        # 3. Plant Gap 2: Rounding difference that ONLY shows when summed
-        # ---------------------------------------------------------
-        # Mathematical root cause:
-        # Sum of per-item rounded fees != Fee calculated on aggregate batch total.
-        # E.g., for 50 transactions, the exact unrounded fee is $X.XX5.
-        # Internal platform rounds each one UP by 1 cent.
-        # The bank's clearing batch aggregates gross first, then rounds,
-        # or uses banker's rounding (round half to even).
-        # To simulate this cleanly: on specific transactions, the sub-cent
-        # fraction produces a $0.01 difference between internal half-up and
-        # bank clearing house rounding.
-        # When viewing any single transaction, a $0.01 fee difference is within
-        # penny rounding, but when summed across all transactions, internal fees
-        # diverge from bank fees by exactly the sum of drifted cents!
-        rounding_drift_count = min(43, max(5, self.base_count // 10))
-        eligible_indices = list(range(min(5, len(bank_records)), len(bank_records)))
-        affected_indices = random.sample(eligible_indices, min(rounding_drift_count, len(eligible_indices)))
-
-        for idx in affected_indices:
-            # Shift bank fee by 1 cent on these items to reflect the aggregate rounding drift
-            old_bank_fee = bank_records[idx].bank_fee
-            new_bank_fee = old_bank_fee - Decimal("0.01")  # Bank charged 1 cent less due to aggregate truncation
-            bank_records[idx].bank_fee = new_bank_fee
-            bank_records[idx].settled_net = bank_records[idx].settled_gross - new_bank_fee
-
-            planted_metadata["gap_2_rounding_drift"]["affected_tx_ids"].append(
-                bank_records[idx].bank_reference
+            # 5. Plant Gap 4: Refund with no matching original transaction
+            orphan_bank_record = BankSettlementRecord(
+                settlement_id="STL_GAP4_ORPHAN_REFUND_999",
+                bank_reference="TXN_NONEXISTENT_ACQ_999",
+                settlement_date=date(2026, 10, 20),
+                type="DEBIT",
+                settled_gross=Decimal("-85.00"),
+                bank_fee=Decimal("0.00"),
+                settled_net=Decimal("-85.00"),
+                bank_status="ADJUSTMENT",
             )
-
-        planted_metadata["gap_2_rounding_drift"]["drift_amount"] = Decimal(str(len(affected_indices) * 0.01))
-
-        # ---------------------------------------------------------
-        # 4. Plant Gap 3: Duplicate entry in one dataset
-        # ---------------------------------------------------------
-        # An internal transaction where a webhook retry caused the platform
-        # to record the same customer payment twice.
-        # The bank only processed and credited the payment ONCE.
-        dup_gross = Decimal("145.00")
-        dup_fee = round_curr(dup_gross * self.fee_rate)
-        dup_net = dup_gross - dup_fee
-        
-        dup_original = InternalTransaction(
-            transaction_id="TXN_GAP3_DUP_ORIGINAL",
-            order_id="ORD_DUP_888",
-            customer_id="CUST_DUP",
-            timestamp=datetime(2026, 10, 15, 14, 20, 0),
-            type="PAYMENT",
-            gross_amount=dup_gross,
-            expected_fee=dup_fee,
-            expected_net=dup_net,
-            status="SUCCESS",
-        )
-        # Duplicate record inserted with different or identical tx_id (webhook retry)
-        dup_clone = InternalTransaction(
-            transaction_id="TXN_GAP3_DUP_RETRY",
-            order_id="ORD_DUP_888",  # Same order_id!
-            customer_id="CUST_DUP",
-            timestamp=datetime(2026, 10, 15, 14, 20, 0),
-            type="PAYMENT",
-            gross_amount=dup_gross,
-            expected_fee=dup_fee,
-            expected_net=dup_net,
-            status="SUCCESS",
-        )
-        
-        # Bank only has one settlement for this order
-        dup_bank_rec = BankSettlementRecord(
-            settlement_id="STL_GAP3_DUP_ORIGINAL",
-            bank_reference="TXN_GAP3_DUP_ORIGINAL",
-            settlement_date=date(2026, 10, 16),
-            type="CREDIT",
-            settled_gross=dup_gross,
-            bank_fee=dup_fee,
-            settled_net=dup_net,
-            bank_status="SETTLED",
-        )
-        
-        internal_txns.append(dup_original)
-        internal_txns.append(dup_clone)
-        bank_records.append(dup_bank_rec)
-        
-        planted_metadata["gap_3_duplicate_internal"].append({
-            "original_tx_id": dup_original.transaction_id,
-            "duplicate_tx_id": dup_clone.transaction_id,
-            "order_id": "ORD_DUP_888",
-            "duplicate_gross_amount": float(dup_gross),
-        })
-
-        # ---------------------------------------------------------
-        # 5. Plant Gap 4: Refund with no matching original transaction
-        # ---------------------------------------------------------
-        # An orphaned bank debit: A customer dispute / chargeback or manual
-        # bank clawback executed directly through the acquiring bank.
-        # The platform database has NO corresponding transaction or refund.
-        orphan_refund_amount = Decimal("85.00")
-        orphan_bank_record = BankSettlementRecord(
-            settlement_id="STL_GAP4_ORPHAN_REFUND_999",
-            bank_reference="TXN_NONEXISTENT_ACQ_999",
-            settlement_date=date(2026, 10, 20),
-            type="DEBIT",
-            settled_gross=Decimal("-85.00"),
-            bank_fee=Decimal("0.00"),
-            settled_net=Decimal("-85.00"),
-            bank_status="ADJUSTMENT",
-        )
-        
-        bank_records.append(orphan_bank_record)
-        planted_metadata["gap_4_orphaned_refund"].append({
-            "settlement_id": orphan_bank_record.settlement_id,
-            "bank_reference": orphan_bank_record.bank_reference,
-            "debit_amount": -85.00,
-            "settlement_date": orphan_bank_record.settlement_date.isoformat(),
-        })
+            
+            bank_records.append(orphan_bank_record)
+            planted_metadata["gap_4_orphaned_refund"].append({
+                "settlement_id": orphan_bank_record.settlement_id,
+                "bank_reference": orphan_bank_record.bank_reference,
+                "debit_amount": -85.00,
+                "settlement_date": orphan_bank_record.settlement_date.isoformat(),
+            })
 
         # Shuffle internal transactions to simulate natural chronological arrival
         internal_txns.sort(key=lambda x: x.timestamp)

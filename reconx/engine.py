@@ -38,32 +38,16 @@ class ReconciliationEngine:
         summary = ReconciliationSummary()
         records: List[ReconciliationRecord] = []
 
-        # Maps for fast lookup
-        # Bank records inside the cutoff window
-        bank_by_ref: Dict[str, BankSettlementRecord] = {
-            r.bank_reference: r for r in bank_records
-        }
-        
-        # Future bank records (for following month settlement verification)
-        future_by_ref: Dict[str, BankSettlementRecord] = {}
-        if future_bank_records:
-            for r in future_bank_records:
-                if r.settlement_date > self.cutoff_date:
-                    future_by_ref[r.bank_reference] = r
-
-        # Matched bank reference tracker
-        matched_bank_refs = set()
-
         # Step 1: Detect Duplicate Entries in Internal System (Gap 3)
-        # Group by order_id to find webhook retries / double bookings
         order_groups = defaultdict(list)
+        tx_id_groups = defaultdict(list)
         for tx in internal_txns:
             order_groups[tx.order_id].append(tx)
+            tx_id_groups[tx.transaction_id].append(tx)
 
         duplicate_tx_ids = set()
         for order_id, tx_list in order_groups.items():
             if len(tx_list) > 1:
-                # Keep the first one as primary, mark rest as duplicates
                 for dup_tx in tx_list[1:]:
                     duplicate_tx_ids.add(dup_tx.transaction_id)
                     rec = ReconciliationRecord(
@@ -84,9 +68,46 @@ class ReconciliationEngine:
                     summary.duplicate_internal_count += 1
                     summary.duplicate_internal_gross_amount += dup_tx.gross_amount
 
-        # Step 2: 1-to-1 Match & Rounding Drift Detection (Gap 2 + Clean Matches)
+        # Also check exact transaction_id duplicates if not already captured
+        for tx_id, tx_list in tx_id_groups.items():
+            if len(tx_list) > 1:
+                for dup_tx in tx_list[1:]:
+                    if dup_tx.transaction_id not in duplicate_tx_ids:
+                        duplicate_tx_ids.add(dup_tx.transaction_id)
+                        rec = ReconciliationRecord(
+                            record_id=f"REC_DUP_ID_{dup_tx.transaction_id}",
+                            discrepancy_type=DiscrepancyType.DUPLICATE_INTERNAL,
+                            internal_txn=dup_tx,
+                            bank_record=None,
+                            gross_variance=dup_tx.gross_amount,
+                            fee_variance=dup_tx.expected_fee,
+                            net_variance=dup_tx.expected_net,
+                            notes=f"Duplicate transaction ID {tx_id} in platform ledger.",
+                        )
+                        records.append(rec)
+                        summary.duplicate_internal_count += 1
+                        summary.duplicate_internal_gross_amount += dup_tx.gross_amount
+
+        # Step 2: Index Bank Records & Check Bank Duplicates
+        bank_by_ref: Dict[str, BankSettlementRecord] = {}
+        matched_bank_refs = set()
+        bank_duplicate_records: List[BankSettlementRecord] = []
+
+        for r in bank_records:
+            if r.bank_reference in bank_by_ref:
+                bank_duplicate_records.append(r)
+            else:
+                bank_by_ref[r.bank_reference] = r
+
+        # Index Future bank records (for following month settlement verification)
+        future_by_ref: Dict[str, BankSettlementRecord] = {}
+        if future_bank_records:
+            for r in future_bank_records:
+                if r.settlement_date > self.cutoff_date:
+                    future_by_ref[r.bank_reference] = r
+
+        # Step 3: 1-to-1 Match & Rounding Drift Detection (Gap 2 + Clean Matches)
         for tx in internal_txns:
-            # Skip rows already flagged as duplicate
             if tx.transaction_id in duplicate_tx_ids:
                 continue
 
@@ -99,7 +120,6 @@ class ReconciliationEngine:
                 net_diff = tx.expected_net - bank_rec.settled_net
 
                 # Check for sub-cent rounding variance (Gap 2)
-                # Gross matches, but fee has penny divergence
                 if gross_diff == Decimal("0.00") and fee_diff != Decimal("0.00"):
                     rec = ReconciliationRecord(
                         record_id=f"REC_{tx.transaction_id}",
@@ -134,8 +154,13 @@ class ReconciliationEngine:
                     summary.matched_count += 1
 
             else:
-                # Step 3: Check if settled in the following month (Gap 1)
+                # Step 4: Check if settled in the following month (Gap 1)
                 future_rec = future_by_ref.get(tx.transaction_id)
+                
+                # If verified in future records OR initiated within 48h of cutoff (float lag)
+                days_to_cutoff = (self.cutoff_date - tx.timestamp.date()).days
+                is_month_end_float = 0 <= days_to_cutoff <= 2
+
                 if future_rec:
                     matched_bank_refs.add(future_rec.bank_reference)
                     rec = ReconciliationRecord(
@@ -149,6 +174,25 @@ class ReconciliationEngine:
                         notes=(
                             f"Timing Float: Transaction recorded on {tx.timestamp.strftime('%Y-%m-%d')} "
                             f"settled on {future_rec.settlement_date.strftime('%Y-%m-%d')} in following month. "
+                            f"Action: Reconcile as Open In-Transit Asset."
+                        ),
+                    )
+                    records.append(rec)
+                    summary.settled_following_month_count += 1
+                    summary.following_month_gross_amount += tx.gross_amount
+                elif is_month_end_float and not future_bank_records:
+                    # When only single-month CSV was uploaded, recognize month-end float
+                    rec = ReconciliationRecord(
+                        record_id=f"REC_{tx.transaction_id}",
+                        discrepancy_type=DiscrepancyType.SETTLED_FOLLOWING_MONTH,
+                        internal_txn=tx,
+                        bank_record=None,
+                        gross_variance=tx.gross_amount,
+                        fee_variance=tx.expected_fee,
+                        net_variance=tx.expected_net,
+                        notes=(
+                            f"Timing Float: Transaction recorded on {tx.timestamp.strftime('%Y-%m-%d')} "
+                            f"near month-end cutoff. Clearing estimated in T+2 (following month). "
                             f"Action: Reconcile as Open In-Transit Asset."
                         ),
                     )
@@ -170,7 +214,7 @@ class ReconciliationEngine:
                     records.append(rec)
                     summary.unmatched_internal_count += 1
 
-        # Step 4: Analyze Unmatched Bank Settlements & Orphaned Refunds (Gap 4)
+        # Step 5: Analyze Unmatched Bank Settlements & Orphaned Refunds (Gap 4)
         for stl in bank_records:
             if stl.bank_reference not in matched_bank_refs:
                 # Orphaned refund / debit adjustment
@@ -206,7 +250,7 @@ class ReconciliationEngine:
                     records.append(rec)
                     summary.unmatched_bank_count += 1
 
-        # Step 5: Aggregate Totals & Accounting Sign-Off
+        # Step 6: Aggregate Totals & Accounting Sign-Off
         summary.total_internal_count = len(internal_txns)
         summary.total_bank_count = len(bank_records)
 
@@ -223,4 +267,3 @@ class ReconciliationEngine:
         summary.net_book_variance = summary.total_internal_net - summary.total_bank_net
 
         return records, summary
-

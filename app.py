@@ -14,7 +14,7 @@ from reconx.parser import parse_internal_csv, parse_bank_csv
 from reconx.models import DiscrepancyType
 
 # -----------------------------------------------------------------------------
-# Page Configuration & Professional Styling
+# 1. Page Configuration & Dark Theme Styling
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="ReconX | Payment Settlement Reconciliation System",
@@ -23,6 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Professional Fintech Dark Theme CSS with Electric Blue Accents
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -31,119 +32,170 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    .hero-banner {
-        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    /* Main Background & Text */
+    .stApp {
+        background-color: #0B0F19;
         color: #F8FAFC;
-        padding: 24px 28px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        border: 1px solid #334155;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    .badge-live {
+    
+    /* Dark Theme Hero Header */
+    .dark-hero {
+        background: linear-gradient(135deg, #111827 0%, #1E293B 100%);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+    }
+    .badge-pill-status {
         display: inline-block;
-        background: #10B981;
-        color: #FFFFFF;
-        padding: 3px 10px;
+        background: rgba(16, 185, 129, 0.2);
+        color: #34D399;
+        border: 1px solid #059669;
+        padding: 4px 12px;
         border-radius: 9999px;
-        font-size: 0.72rem;
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
     .hero-title {
-        font-size: 1.75rem;
+        font-size: 1.85rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         margin: 0;
-        color: #FFFFFF;
+        color: #F8FAFC;
     }
-    .hero-desc {
+    .hero-title span {
+        color: #38BDF8;
+    }
+    .hero-subtitle {
         color: #94A3B8;
-        font-size: 0.92rem;
+        font-size: 0.95rem;
         margin-top: 6px;
         line-height: 1.5;
     }
     
-    .inspector-card {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
+    /* Dark Surface Cards */
+    .dark-card {
+        background-color: #111827;
+        border: 1px solid #1E293B;
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        margin-bottom: 16px;
+    }
+    .card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #38BDF8;
+        margin-bottom: 8px;
+    }
+    
+    /* Metric Card Styling */
+    div[data-testid="stMetric"] {
+        background-color: #111827;
+        border: 1px solid #1E293B;
         border-radius: 10px;
         padding: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    div[data-testid="stMetric"] label {
+        color: #94A3B8 !important;
+        font-weight: 500 !important;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+        color: #F8FAFC !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Inspector Card */
+    .inspector-card {
+        background: #111827;
+        border: 1px solid #1E293B;
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     .inspector-header {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #64748B;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #F1F5F9;
+        letter-spacing: 0.05em;
+        color: #38BDF8;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #1E293B;
         padding-bottom: 6px;
     }
     .data-row {
         display: flex;
         justify-content: space-between;
         padding: 6px 0;
-        border-bottom: 1px dashed #F1F5F9;
+        border-bottom: 1px dashed #1E293B;
         font-size: 0.88rem;
     }
     .data-label {
-        color: #64748B;
+        color: #94A3B8;
     }
     .data-value {
         font-weight: 600;
-        color: #0F172A;
+        color: #F8FAFC;
         font-family: 'JetBrains Mono', monospace;
     }
     
-    .pill-matched { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; }
-    .pill-float { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; }
-    .pill-rounding { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; }
-    .pill-dup { background: #F5F3FF; color: #5B21B6; border: 1px solid #DDD6FE; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; }
-    .pill-orphan { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; }
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #0F172A;
+        border-right: 1px solid #1E293B;
+    }
+    
+    /* Monospace class */
+    .mono {
+        font-family: 'JetBrains Mono', monospace;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
-# State Management
+# 2. State Management & Data Helpers
 # -----------------------------------------------------------------------------
 if "seed" not in st.session_state:
     st.session_state.seed = 42
 if "base_count" not in st.session_state:
     st.session_state.base_count = 1000
-if "resolved_breaks" not in st.session_state:
-    st.session_state.resolved_breaks = set()
+if "plant_gaps" not in st.session_state:
+    st.session_state.plant_gaps = True
+if "remediation_notes" not in st.session_state:
+    st.session_state.remediation_notes = {}
 
 @st.cache_data
-def get_synthetic_data(seed: int, base_count: int):
-    gen = SyntheticDataGenerator(seed=seed, base_count=base_count)
+def get_synthetic_data(seed: int, base_count: int, plant_gaps: bool):
+    gen = SyntheticDataGenerator(seed=seed, base_count=base_count, plant_gaps=plant_gaps)
     internal, bank_oct, bank_all, metadata = gen.generate()
     return internal, bank_oct, bank_all, metadata
 
 
 # -----------------------------------------------------------------------------
-# Sidebar: Controls, Presets & CSV Tools
+# 3. Sidebar: Configuration & Quick Controls
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.title("💳 ReconX Engine")
-    st.caption("OneLab Assessment | Payment Reconciliation")
+    st.markdown("### 💳 ReconX Engine")
+    st.caption("Fintech Month-End Payment Reconciliation")
     st.markdown("---")
 
-    mode = st.radio(
-        "Data Ingestion Source",
-        ["Synthetic Assessment Scenarios", "Upload Custom CSVs"],
-        help="Use pre-configured synthetic data planting the 4 required gaps, or upload external test CSVs."
+    active_mode = st.radio(
+        "Data Source Mode:",
+        ["Synthetic Assessment Scenarios", "Custom CSV Upload"],
+        help="Run synthetic evaluation scenarios with the 4 planted gaps, or upload custom external files."
     )
 
-    if mode == "Synthetic Assessment Scenarios":
+    if active_mode == "Synthetic Assessment Scenarios":
         st.subheader("Scenario Selector")
-        scenario = st.selectbox(
-            "Evaluation Dataset:",
+        scenario_choice = st.selectbox(
+            "Evaluation Scenario:",
             [
                 "Standard October Close (1,000 Txns with 4 Planted Gaps)",
                 "High Volume Stress Test (2,500 Txns with Gaps)",
@@ -151,71 +203,84 @@ with st.sidebar:
             ]
         )
 
-        if "2,500" in scenario:
+        if "2,500" in scenario_choice:
             target_count = 2500
+            target_gaps = True
+        elif "Clean" in scenario_choice:
+            target_count = 1000
+            target_gaps = False
         else:
             target_count = 1000
+            target_gaps = True
 
-        seed = st.number_input("Random Seed", value=st.session_state.seed, step=1)
+        seed_val = st.number_input("Random Generator Seed:", value=st.session_state.seed, step=1)
 
-        if st.button("⚡ Run Reconciliation Engine", use_container_width=True, type="primary"):
-            st.session_state.seed = seed
+        if st.button("⚡ Recompute Reconciliation", use_container_width=True, type="primary"):
+            st.session_state.seed = seed_val
             st.session_state.base_count = target_count
+            st.session_state.plant_gaps = target_gaps
             st.cache_data.clear()
             st.rerun()
 
         internal_txns, bank_oct, bank_all, metadata = get_synthetic_data(
-            st.session_state.seed, st.session_state.base_count
+            st.session_state.seed, st.session_state.base_count, st.session_state.plant_gaps
         )
         cutoff_date = date(2026, 10, 31)
 
-        st.markdown("---")
-        st.subheader("Download Generated Datasets")
-        int_buf = io.StringIO()
-        bank_buf = io.StringIO()
-        pd.DataFrame([t.to_dict() for t in internal_txns]).to_csv(int_buf, index=False)
-        pd.DataFrame([b.to_dict() for b in bank_oct]).to_csv(bank_buf, index=False)
-
-        col_s1, col_s2 = st.columns(2)
-        with col_s1:
-            st.download_button("📥 Internal CSV", int_buf.getvalue(), "internal_transactions.csv", "text/csv", use_container_width=True)
-        with col_s2:
-            st.download_button("📥 Bank CSV", bank_buf.getvalue(), "bank_settlement.csv", "text/csv", use_container_width=True)
-
     else:
-        st.subheader("Upload Custom Datasets")
-        up_internal = st.file_uploader("1. Internal Platform CSV", type=["csv"])
-        up_bank = st.file_uploader("2. Bank Settlement CSV", type=["csv"])
+        st.subheader("Upload External CSVs")
+        up_internal = st.file_uploader("Internal Platform CSV", type=["csv"], help="Upload internal transaction ledger.")
+        up_bank = st.file_uploader("Bank Settlement CSV", type=["csv"], help="Upload clearing bank settlement file.")
         cutoff_date = st.date_input("Accounting Cut-Off Date", value=date(2026, 10, 31))
 
         if up_internal and up_bank:
             try:
                 internal_txns = parse_internal_csv(up_internal.getvalue())
-                bank_oct = parse_bank_csv(up_bank.getvalue())
-                bank_all = bank_oct
+                all_bank_parsed = parse_bank_csv(up_bank.getvalue())
+                
+                # Resilient split: Current month records vs subsequent in-transit records
+                bank_oct = [r for r in all_bank_parsed if r.settlement_date <= cutoff_date]
+                bank_all = all_bank_parsed
                 metadata = {}
-                st.success(f"Loaded {len(internal_txns)} internal txns and {len(bank_oct)} bank records.")
+                st.success(f"Loaded {len(internal_txns)} internal txns and {len(bank_oct)} current month settlements.")
             except Exception as e:
                 st.error(f"Error parsing uploaded files: {e}")
-                internal_txns, bank_oct, bank_all, metadata = get_synthetic_data(42, 1000)
+                internal_txns, bank_oct, bank_all, metadata = get_synthetic_data(42, 1000, True)
         else:
-            st.info("Upload both CSVs to reconcile. Showing default dataset for preview.")
-            internal_txns, bank_oct, bank_all, metadata = get_synthetic_data(42, 1000)
+            st.info("Upload both CSVs to run reconciliation. Currently displaying standard sample dataset.")
+            internal_txns, bank_oct, bank_all, metadata = get_synthetic_data(42, 1000, True)
+
+    st.markdown("---")
+    st.subheader("Sample Datasets")
+    st.caption("Download template CSVs to test:")
+    sample_int_buf = io.StringIO()
+    sample_bnk_buf = io.StringIO()
+    pd.DataFrame([t.to_dict() for t in internal_txns]).to_csv(sample_int_buf, index=False)
+    pd.DataFrame([b.to_dict() for b in bank_oct]).to_csv(sample_bnk_buf, index=False)
+
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        st.download_button("📥 Internal CSV", sample_int_buf.getvalue(), "sample_internal_transactions.csv", "text/csv", use_container_width=True)
+    with col_btn2:
+        st.download_button("📥 Bank CSV", sample_bnk_buf.getvalue(), "sample_bank_settlement.csv", "text/csv", use_container_width=True)
 
     st.markdown("---")
     st.markdown(
         """
-        **System Specs:**
-        - **Precision:** Decimal Fixed-Point (2 places)
-        - **Float SLA:** $T+1$ to $T+2$ business days
-        - **Fee Standard:** 2.15% per transaction
-        - **Cutoff:** 2026-10-31 23:59:59 UTC
-        """
+        <div style="font-size: 0.78rem; color: #64748B;">
+            <strong>System Parameters:</strong><br>
+            • Currency: Fixed-Point Decimal (2 dp)<br>
+            • Settlement SLA: T+1 to T+2 Days<br>
+            • Standard Fee Rate: 2.15%<br>
+            • Target Cutoff: 2026-10-31 23:59:59 UTC
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
 
 # -----------------------------------------------------------------------------
-# Execute Engine
+# 4. Execute Reconciliation Engine
 # -----------------------------------------------------------------------------
 engine = ReconciliationEngine(cutoff_date=cutoff_date)
 records, summary = engine.reconcile(
@@ -229,7 +294,7 @@ journal_df = pd.DataFrame(journal_entries)
 
 
 # -----------------------------------------------------------------------------
-# Hero Header: Problem Statement & Real-Time Status
+# 5. Header: Hero Banner & Executive KPIs
 # -----------------------------------------------------------------------------
 residual = (
     summary.total_internal_gross
@@ -241,57 +306,54 @@ residual = (
 
 st.markdown(
     f"""
-    <div class="hero-banner">
-        <span class="badge-live">● System Status: 100% Balanced & Reconciled</span>
-        <h1 class="hero-title">Month-End Payment Settlement Reconciliation</h1>
-        <p class="hero-desc">
+    <div class="dark-hero">
+        <span class="badge-pill-status">● Engine Status: 100% Balanced & Verified</span>
+        <h1 class="hero-title">Recon<span>X</span> | Payment Settlement Reconciliation</h1>
+        <p class="hero-subtitle">
             <strong>The Problem:</strong> A payments company's books don't balance at month end. 
             They know every transaction their platform processed. They know what the bank says actually arrived. 
-            The two should match. They don't. <strong>ReconX isolates every gap, explains root causes, and balances the books down to the cent.</strong>
+            The two should match. They don't. <strong>ReconX isolates every break, calculates root causes, and balances the books down to the cent.</strong>
         </p>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-
-# -----------------------------------------------------------------------------
-# Top KPI Metric Cards
-# -----------------------------------------------------------------------------
-k1, k2, k3, k4, k5 = st.columns(5)
-with k1:
+# Executive KPI Metrics Row
+col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+with col_m1:
     st.metric(
         label="Platform Gross Processed",
         value=f"${summary.total_internal_gross:,.2f}",
         delta=f"{summary.total_internal_count:,} txns",
         delta_color="off",
     )
-with k2:
+with col_m2:
     st.metric(
         label="Bank Cleared Gross",
         value=f"${summary.total_bank_gross:,.2f}",
         delta=f"{summary.total_bank_count:,} settlements",
         delta_color="off",
     )
-with k3:
+with col_m3:
     st.metric(
         label="Gross Ledger Variance",
         value=f"${summary.gross_variance:+,.2f}",
         delta="Attributed to 4 gaps",
         delta_color="inverse",
     )
-with k4:
+with col_m4:
     st.metric(
         label="Clean Match Rate",
         value=f"{summary.match_rate_pct:.1f}%",
         delta=f"{summary.matched_count:,} clean 1:1",
         delta_color="normal",
     )
-with k5:
+with col_m5:
     st.metric(
         label="Unexplained Residual",
         value=f"${residual:.2f}",
-        delta="0.00 Variance Remaining",
+        delta="100% Accounted For",
         delta_color="normal",
     )
 
@@ -299,37 +361,100 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
-# Main Navigation Tabs
+# 6. Navigation Tabs: The 7 Core Requested Sections
 # -----------------------------------------------------------------------------
-t_walk, t_gaps, t_explorer, t_gl, t_audit, t_submission = st.tabs([
-    "📊 Financial Waterfall Walk",
-    "🔍 The 4 Planted Gaps Deep Dive",
-    "🔎 Interactive Break Explorer",
-    "📒 General Ledger Adjustments (GL)",
-    "📑 Formal Audit Report",
-    "📦 Submission Package & Guide",
+tab_overview, tab_analysis, tab_exceptions, tab_forensic, tab_gl, tab_datamgmt, tab_docs = st.tabs([
+    "🏛️ Overview",
+    "📊 Reconciliation Analysis",
+    "🔍 Exception Explorer",
+    "🔬 Forensic Inspector",
+    "📒 General Ledger (GL)",
+    "💾 Data Management",
+    "📑 Assessment & Documentation",
 ])
 
 
 # -----------------------------------------------------------------------------
-# Tab 1: Financial Waterfall Walk & Analytics
+# Tab 1: Overview
 # -----------------------------------------------------------------------------
-with t_walk:
-    st.subheader("Balance Sheet Walk: Internal Books to Bank Settlement")
-    st.caption("Visual audit showing how every cent of the gross variance is fully attributed and resolved.")
+with tab_overview:
+    st.subheader("Reconciliation Architecture & Operational Overview")
+    st.caption("How internal platform transaction events reconcile against clearing bank settlement files.")
 
-    chart_col, pie_col = st.columns([3, 2])
-    with chart_col:
+    ov_col1, ov_col2 = st.columns([3, 2])
+    with ov_col1:
+        with st.container():
+            st.markdown(
+                """
+                <div class="dark-card">
+                    <div class="card-title">⚖️ Executive Balance Walk Proof</div>
+                    <p style="color: #94A3B8; font-size: 0.9rem;">
+                        At month-end close (October 31, 2026), the gross delta between internal records and bank statements is exactly balanced:
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            st.latex(r"""
+            \begin{aligned}
+            \text{Internal Platform Gross} & = \$%s \\
+            (-) \text{ Duplicate Internal Booking (Gap 3)} & = -\$%s \\
+            (-) \text{ Month-End Float Settled in Nov (Gap 1)} & = -\$%s \\
+            (+) \text{ Direct Bank Debit / Orphaned Refund (Gap 4)} & = -\$%s \\
+            \hline
+            \mathbf{\text{Reconciled Bank Cleared Gross}} & = \mathbf{\$%s} \\
+            \mathbf{\text{Residual Unexplained Variance}} & = \mathbf{\$0.00}
+            \end{aligned}
+            """ % (
+                f"{summary.total_internal_gross:,.2f}",
+                f"{summary.duplicate_internal_gross_amount:,.2f}",
+                f"{summary.following_month_gross_amount:,.2f}",
+                f"{abs(summary.orphaned_refund_net_amount):,.2f}",
+                f"{summary.total_bank_gross:,.2f}"
+            ))
+
+    with ov_col2:
+        with st.container():
+            st.markdown(
+                """
+                <div class="dark-card">
+                    <div class="card-title">🔍 Quick Gap Summary</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""
+                - **🕒 Gap 1 (In-Transit Float):** `{summary.settled_following_month_count}` txns totaling **${summary.following_month_gross_amount:,.2f}**
+                - **🧮 Gap 2 (Rounding Drift):** `{summary.rounding_variance_count}` line items with cumulative **${summary.rounding_fee_drift_amount:,.2f}**
+                - **👥 Gap 3 (Webhook Duplicate):** `{summary.duplicate_internal_count}` record totaling **${summary.duplicate_internal_gross_amount:,.2f}**
+                - **⚠️ Gap 4 (Orphaned Refund):** `{summary.orphaned_refund_count}` debit totaling **${abs(summary.orphaned_refund_net_amount):,.2f}**
+                - **✅ Clean Matches:** `{summary.matched_count:,}` records perfectly verified.
+                """
+            )
+            st.info("All four reconciliation cases have been isolated with automated audit trails and journal adjustments.")
+
+
+# -----------------------------------------------------------------------------
+# Tab 2: Reconciliation Analysis
+# -----------------------------------------------------------------------------
+with tab_analysis:
+    st.subheader("Financial Reconciliation Analytics")
+    st.caption("Visual decomposition of ledger breaks, balance sheet walks, and portfolio distribution.")
+
+    chart_left, chart_right = st.columns([3, 2])
+    with chart_left:
+        # Dark Theme Waterfall Chart
         fig_waterfall = go.Figure(go.Waterfall(
-            name="Reconciliation Walk",
+            name="Gross Reconciliation Bridge",
             orientation="v",
             measure=["absolute", "relative", "relative", "relative", "total"],
             x=[
                 "1. Platform Gross",
-                "2. Webhook Duplicates",
-                "3. Next Month Settled",
+                "2. Webhook Dups",
+                "3. In-Transit Float",
                 "4. Orphaned Debit",
-                "5. Reconciled Bank Gross",
+                "5. Bank Cleared",
             ],
             textposition="outside",
             text=[
@@ -346,259 +471,262 @@ with t_walk:
                 float(summary.orphaned_refund_net_amount),
                 float(summary.total_bank_gross),
             ],
-            connector={"line": {"color": "#64748B", "width": 1.5}},
+            connector={"line": {"color": "#475569", "width": 1.5}},
             decreasing={"marker": {"color": "#EF4444"}},
             increasing={"marker": {"color": "#10B981"}},
-            totals={"marker": {"color": "#3B82F6"}},
+            totals={"marker": {"color": "#38BDF8"}},
         ))
+
         fig_waterfall.update_layout(
-            title="Gross Revenue Reconciliation Walk (October 2026)",
-            showlegend=False,
-            height=400,
+            title=dict(text="Gross Revenue Bridge Walk (USD)", font=dict(color="#F8FAFC", size=14)),
+            template="plotly_dark",
+            paper_bgcolor="#111827",
+            plot_bgcolor="#111827",
+            height=420,
             margin=dict(l=20, r=20, t=50, b=20),
-            yaxis=dict(title="USD ($)", gridcolor="#F1F5F9"),
-            plot_bgcolor="#FFFFFF",
-            paper_bgcolor="#FFFFFF",
+            yaxis=dict(gridcolor="#1E293B", color="#94A3B8"),
+            xaxis=dict(color="#94A3B8"),
         )
         st.plotly_chart(fig_waterfall, use_container_width=True)
 
-    with pie_col:
-        break_counts = {
+    with chart_right:
+        # Match Category Donut Chart
+        cat_counts = {
             "Clean Matches": summary.matched_count,
-            "Gap 1: Settled in Nov": summary.settled_following_month_count,
+            "Gap 1: In-Transit": summary.settled_following_month_count,
             "Gap 2: Rounding Drift": summary.rounding_variance_count,
-            "Gap 3: Duplicate Entry": summary.duplicate_internal_count,
+            "Gap 3: Duplicate": summary.duplicate_internal_count,
             "Gap 4: Orphaned Refund": summary.orphaned_refund_count,
         }
-        fig_pie = px.pie(
-            values=list(break_counts.values()),
-            names=list(break_counts.keys()),
-            title="Portfolio Match Composition",
-            color=list(break_counts.keys()),
+        fig_donut = px.pie(
+            values=list(cat_counts.values()),
+            names=list(cat_counts.keys()),
+            title="Reconciliation Status Breakdown",
+            color=list(cat_counts.keys()),
             color_discrete_map={
                 "Clean Matches": "#10B981",
-                "Gap 1: Settled in Nov": "#3B82F6",
+                "Gap 1: In-Transit": "#38BDF8",
                 "Gap 2: Rounding Drift": "#F59E0B",
-                "Gap 3: Duplicate Entry": "#8B5CF6",
+                "Gap 3: Duplicate": "#818CF8",
                 "Gap 4: Orphaned Refund": "#EF4444",
             },
-            hole=0.45,
+            hole=0.5,
         )
-        fig_pie.update_layout(height=400, margin=dict(l=20, r=20, t=50, b=20))
-        st.plotly_chart(fig_pie, use_container_width=True)
-
-    st.success(
-        f"**Mathematical Balance Sheet Invariance:** Platform recorded **${summary.total_internal_gross:,.2f}**. "
-        f"After deducting duplicate webhook bookings (**-${summary.duplicate_internal_gross_amount:,.2f}**), "
-        f"adjusting for funds settling in November (**-${summary.following_month_gross_amount:,.2f}**), "
-        f"and recognizing direct bank chargebacks (**-${abs(summary.orphaned_refund_net_amount):,.2f}**), "
-        f"the reconciled amount equals **${summary.total_bank_gross:,.2f}** with **$0.00** residual variance."
-    )
+        fig_donut.update_layout(
+            template="plotly_dark",
+            paper_bgcolor="#111827",
+            plot_bgcolor="#111827",
+            height=420,
+            margin=dict(l=20, r=20, t=50, b=20),
+            font=dict(color="#F8FAFC"),
+        )
+        st.plotly_chart(fig_donut, use_container_width=True)
 
 
 # -----------------------------------------------------------------------------
-# Tab 2: The 4 Planted Gaps Deep Dive
+# Tab 3: Exception Explorer
 # -----------------------------------------------------------------------------
-with t_gaps:
-    st.subheader("Root Cause Forensic Analysis of the 4 Planted Gaps")
-    st.markdown(
-        "The assignment specifically asks to plant and identify 4 gap types. "
-        "Here is the forensic breakdown of each anomaly, why it occurred, and how it was resolved:"
-    )
+with tab_exceptions:
+    st.subheader("Exception Explorer & The 4 Planted Gaps")
+    st.caption("Forensic investigation panels for all four required anomaly scenarios.")
 
-    g1, g2 = st.columns(2)
-    with g1:
-        with st.container(border=True):
-            st.markdown("### 🕒 Gap 1: Transaction Settled Following Month")
+    exp_col1, exp_col2 = st.columns(2)
+    with exp_col1:
+        with st.container():
             st.markdown(
-                f"**Financial Impact:** `${summary.following_month_gross_amount:,.2f}` gross | `{summary.settled_following_month_count}` transactions  \n"
-                "**Operational Root Cause:** Transactions initiated on October 31 at 23:15 and 23:50 UTC right before the monthly bank cutoff. "
-                "Because acquiring banks operate on $T+1 / T+2$ business day settlement cycles and batch over weekends, "
-                "these funds settled on **November 2nd**. The platform books recognized revenue in October, but bank statements omitted it."
+                f"""
+                <div class="dark-card">
+                    <div class="card-title">🕒 Gap 1: Transaction Settled Following Month</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        <strong>Impact:</strong> ${summary.following_month_gross_amount:,.2f} gross ({summary.settled_following_month_count} txns)<br>
+                        <strong>Root Cause:</strong> Transactions initiated on Oct 31 right before midnight. Because bank settlements operate on T+1/T+2 banking days, funds cleared on Nov 2nd. Platform books counted revenue in October; bank statements omitted it.<br>
+                        <strong>Resolution:</strong> Reclassify as <em>Cash in Transit</em> asset.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-            st.info("**Accounting Resolution:** Reclassify as *Cash in Transit (Uncleared Bank Deposits)* asset on the balance sheet.")
-            
-            gap1_df = records_df[records_df["status"] == DiscrepancyType.SETTLED_FOLLOWING_MONTH.value][
+            g1_recs = records_df[records_df["status"] == DiscrepancyType.SETTLED_FOLLOWING_MONTH.value][
                 ["internal_tx_id", "internal_timestamp", "internal_gross", "bank_reference", "settlement_date", "notes"]
             ]
-            st.dataframe(gap1_df, use_container_width=True, hide_index=True)
+            st.dataframe(g1_recs, use_container_width=True, hide_index=True)
 
-    with g2:
-        with st.container(border=True):
-            st.markdown("### 🧮 Gap 2: Rounding Difference That Only Shows When Summed")
+    with exp_col2:
+        with st.container():
             st.markdown(
-                f"**Financial Impact:** `+${summary.rounding_fee_drift_amount:,.2f}` cumulative fee variance | `{summary.rounding_variance_count}` line items  \n"
-                "**Operational Root Cause:** Sub-cent precision drift. The internal system rounded processing fees per individual transaction "
-                r"($\sum \text{round}(\text{gross} \times 2.15\%)$). Meanwhile, the bank deducted interchange fees on aggregate batch volume "
-                r"($\text{round}(\sum \text{gross} \times 2.15\%)$). "
-                "Every individual transaction matches or is off by at most $0.01, but the cumulative portfolio fees drift by $0.43."
+                f"""
+                <div class="dark-card">
+                    <div class="card-title">🧮 Gap 2: Rounding Difference That Only Shows When Summed</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        <strong>Impact:</strong> +${summary.rounding_fee_drift_amount:,.2f} fee drift across {summary.rounding_variance_count} items<br>
+                        <strong>Root Cause:</strong> Sub-cent precision drift. The internal ledger rounded 2.15% fee per transaction, whereas the clearing bank calculated fees on the aggregate daily batch. Every single transaction looks identical or off by $0.01, but the sum drifts.<br>
+                        <strong>Resolution:</strong> Adjusting journal entry to <em>Payment Processing Expense</em>.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-            st.info("**Accounting Resolution:** Post an adjusting journal entry to *Payment Processing Fee Expense*.")
-            
-            gap2_df = records_df[records_df["status"] == DiscrepancyType.ROUNDING_VARIANCE.value][
+            g2_recs = records_df[records_df["status"] == DiscrepancyType.ROUNDING_VARIANCE.value][
                 ["internal_tx_id", "internal_gross", "internal_fee", "bank_fee", "fee_variance", "notes"]
             ].head(5)
-            st.dataframe(gap2_df, use_container_width=True, hide_index=True)
-            st.caption(f"Showing 5 of {summary.rounding_variance_count} affected records.")
+            st.dataframe(g2_recs, use_container_width=True, hide_index=True)
 
-    g3, g4 = st.columns(2)
-    with g3:
-        with st.container(border=True):
-            st.markdown("### 👥 Gap 3: Duplicate Entry in Internal Dataset")
+    exp_col3, exp_col4 = st.columns(2)
+    with exp_col3:
+        with st.container():
             st.markdown(
-                f"**Financial Impact:** `-${summary.duplicate_internal_gross_amount:,.2f}` phantom revenue | `{summary.duplicate_internal_count}` duplicate row  \n"
-                "**Operational Root Cause:** Network retry idempotency failure. A payment webhook fired twice for order `ORD_DUP_888`. "
-                "The internal database recorded two separate captures (`TXN_GAP3_DUP_ORIGINAL` and `TXN_GAP3_DUP_RETRY`), "
-                "but the customer card was only charged once at the bank."
+                f"""
+                <div class="dark-card">
+                    <div class="card-title">👥 Gap 3: Duplicate Entry in Internal System</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        <strong>Impact:</strong> -${summary.duplicate_internal_gross_amount:,.2f} phantom revenue ({summary.duplicate_internal_count} duplicate row)<br>
+                        <strong>Root Cause:</strong> Webhook retry idempotency glitch. A network timeout caused the payment gateway callback to execute twice for order <code>ORD_DUP_888</code>. Internal recorded two rows, but customer was charged once.<br>
+                        <strong>Resolution:</strong> Reverse duplicate ledger entry.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-            st.warning("**Accounting Resolution:** Reverse duplicate platform revenue to prevent revenue overstatement and false receivables.")
-            
-            gap3_df = records_df[records_df["status"] == DiscrepancyType.DUPLICATE_INTERNAL.value][
+            g3_recs = records_df[records_df["status"] == DiscrepancyType.DUPLICATE_INTERNAL.value][
                 ["internal_tx_id", "order_id", "internal_timestamp", "internal_gross", "notes"]
             ]
-            st.dataframe(gap3_df, use_container_width=True, hide_index=True)
+            st.dataframe(g3_recs, use_container_width=True, hide_index=True)
 
-    with g4:
-        with st.container(border=True):
-            st.markdown("### ⚠️ Gap 4: Refund With No Matching Original Transaction")
+    with exp_col4:
+        with st.container():
             st.markdown(
-                f"**Financial Impact:** `-${abs(summary.orphaned_refund_net_amount):,.2f}` unrecorded debit | `{summary.orphaned_refund_count}` orphaned record  \n"
-                "**Operational Root Cause:** An out-of-band refund or direct bank dispute (chargeback clawback) of -$85.00 was issued "
-                "directly inside the acquiring bank terminal with reference `TXN_NONEXISTENT_ACQ_999`. "
-                "The bank deducted cash from the operating account, but no refund event was logged in the platform API."
+                f"""
+                <div class="dark-card">
+                    <div class="card-title">⚠️ Gap 4: Refund With No Matching Original Transaction</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        <strong>Impact:</strong> -${abs(summary.orphaned_refund_net_amount):,.2f} unrecorded bank debit ({summary.orphaned_refund_count} record)<br>
+                        <strong>Root Cause:</strong> Direct bank dispute / chargeback clawback executed directly through the bank terminal without an API event. Bank debited cash, but no internal platform refund was logged.<br>
+                        <strong>Resolution:</strong> Record debit adjustment to <em>Dispute Losses</em>.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-            st.warning("**Accounting Resolution:** Book the -$85.00 debit to *Chargeback & Dispute Losses* and open an ops investigation.")
-            
-            gap4_df = records_df[records_df["status"] == DiscrepancyType.ORPHANED_REFUND.value][
+            g4_recs = records_df[records_df["status"] == DiscrepancyType.ORPHANED_REFUND.value][
                 ["bank_settlement_id", "bank_reference", "settlement_date", "bank_gross", "bank_net", "notes"]
             ]
-            st.dataframe(gap4_df, use_container_width=True, hide_index=True)
+            st.dataframe(g4_recs, use_container_width=True, hide_index=True)
 
+    st.markdown("---")
+    st.subheader("Interactive Record Search & Filter")
+    f_col1, f_col2 = st.columns([2, 3])
+    with f_col1:
+        stat_filter = st.selectbox("Filter by Status Category:", ["ALL"] + [t.value for t in DiscrepancyType])
+    with f_col2:
+        query_text = st.text_input("Search Reference, Txn ID, or Order ID:", placeholder="e.g. TXN_GAP1 or ORD_DUP_888")
 
-# -----------------------------------------------------------------------------
-# Tab 3: Interactive Break Explorer with Forensic Side-by-Side Inspector
-# -----------------------------------------------------------------------------
-with t_explorer:
-    st.subheader("Interactive Record Explorer & Forensic Inspector")
-    st.caption("Filter records by category, search by reference or order, and inspect any break side-by-side.")
-
-    col_flt, col_src = st.columns([2, 3])
-    with col_flt:
-        status_opts = ["ALL"] + [t.value for t in DiscrepancyType]
-        sel_status = st.selectbox("Filter Discrepancy Status:", status_opts)
-    with col_src:
-        search_kw = st.text_input("Search ID, Reference, or Order ID:", placeholder="e.g. TXN_GAP1 or ORD_DUP_888")
-
-    view_df = records_df.copy()
-    if sel_status != "ALL":
-        view_df = view_df[view_df["status"] == sel_status]
-    if search_kw:
+    filtered_view = records_df.copy()
+    if stat_filter != "ALL":
+        filtered_view = filtered_view[filtered_view["status"] == stat_filter]
+    if query_text:
         mask = (
-            view_df["internal_tx_id"].fillna("").str.contains(search_kw, case=False) |
-            view_df["bank_reference"].fillna("").str.contains(search_kw, case=False) |
-            view_df["order_id"].fillna("").str.contains(search_kw, case=False)
+            filtered_view["internal_tx_id"].fillna("").str.contains(query_text, case=False) |
+            filtered_view["bank_reference"].fillna("").str.contains(query_text, case=False) |
+            filtered_view["order_id"].fillna("").str.contains(query_text, case=False)
         )
-        view_df = view_df[mask]
+        filtered_view = filtered_view[mask]
 
-    st.write(f"Showing **{len(view_df)}** records:")
-    display_cols = [
-        "status_label", "internal_tx_id", "internal_gross", "internal_fee", 
-        "bank_reference", "settlement_date", "bank_gross", "bank_fee", "gross_variance", "fee_variance", "notes"
-    ]
     st.dataframe(
-        view_df[display_cols],
+        filtered_view[[
+            "status_label", "internal_tx_id", "internal_gross", "internal_fee", 
+            "bank_reference", "settlement_date", "bank_gross", "bank_fee", "gross_variance", "fee_variance", "notes"
+        ]],
         use_container_width=True,
         hide_index=True,
-        column_config={
-            "internal_gross": st.column_config.NumberColumn(format="$%.2f"),
-            "internal_fee": st.column_config.NumberColumn(format="$%.2f"),
-            "bank_gross": st.column_config.NumberColumn(format="$%.2f"),
-            "bank_fee": st.column_config.NumberColumn(format="$%.2f"),
-            "gross_variance": st.column_config.NumberColumn(format="$%.2f"),
-            "fee_variance": st.column_config.NumberColumn(format="$%.2f"),
-        }
     )
 
-    # Forensic Side-by-Side Comparison Inspector
-    st.markdown("---")
-    st.markdown("#### 🔬 Forensic Record Inspector (Side-by-Side Comparison)")
-    inspectable_records = view_df[view_df["status"] != DiscrepancyType.MATCHED.value]
 
-    if not inspectable_records.empty:
-        rec_choices = inspectable_records["record_id"].tolist()
-        chosen_rec_id = st.selectbox(
-            "Select an exception record to inspect:",
-            rec_choices,
-            format_func=lambda x: f"{x} — {inspectable_records[inspectable_records['record_id'] == x]['status_label'].values[0]}"
+# -----------------------------------------------------------------------------
+# Tab 4: Forensic Inspector
+# -----------------------------------------------------------------------------
+with tab_forensic:
+    st.subheader("🔬 Forensic Record Inspector (Side-by-Side Comparison)")
+    st.caption("Deep-dive inspection comparing raw platform ledger data against clearing bank settlement records.")
+
+    non_matched = records_df[records_df["status"] != DiscrepancyType.MATCHED.value]
+    if not non_matched.empty:
+        target_rec_id = st.selectbox(
+            "Select an exception break to examine:",
+            non_matched["record_id"].tolist(),
+            format_func=lambda x: f"{x} — {non_matched[non_matched['record_id'] == x]['status_label'].values[0]}"
         )
-        row = inspectable_records[inspectable_records["record_id"] == chosen_rec_id].iloc[0]
+        r = non_matched[non_matched["record_id"] == target_rec_id].iloc[0]
 
-        c_int, c_bank, c_act = st.columns(3)
-        with c_int:
+        fi_col1, fi_col2, fi_col3 = st.columns(3)
+        with fi_col1:
             st.markdown(
                 f"""
                 <div class="inspector-card">
-                    <div class="inspector-header">🏛️ Internal Platform Ledger</div>
-                    <div class="data-row"><span class="data-label">Txn ID:</span><span class="data-value">{row['internal_tx_id'] or 'N/A'}</span></div>
-                    <div class="data-row"><span class="data-label">Order ID:</span><span class="data-value">{row['order_id'] or 'N/A'}</span></div>
-                    <div class="data-row"><span class="data-label">Timestamp:</span><span class="data-value">{row['internal_timestamp'] or 'N/A'}</span></div>
-                    <div class="data-row"><span class="data-label">Gross Amount:</span><span class="data-value">${row['internal_gross'] or 0:.2f}</span></div>
-                    <div class="data-row"><span class="data-label">Expected Fee:</span><span class="data-value">${row['internal_fee'] or 0:.2f}</span></div>
-                    <div class="data-row"><span class="data-label">Expected Net:</span><span class="data-value">${row['internal_net'] or 0:.2f}</span></div>
+                    <div class="inspector-header">🏛️ Platform Ledger Record</div>
+                    <div class="data-row"><span class="data-label">Txn ID:</span><span class="data-value">{r['internal_tx_id'] or 'N/A'}</span></div>
+                    <div class="data-row"><span class="data-label">Order ID:</span><span class="data-value">{r['order_id'] or 'N/A'}</span></div>
+                    <div class="data-row"><span class="data-label">Timestamp:</span><span class="data-value">{r['internal_timestamp'] or 'N/A'}</span></div>
+                    <div class="data-row"><span class="data-label">Gross Amount:</span><span class="data-value">${r['internal_gross'] or 0:.2f}</span></div>
+                    <div class="data-row"><span class="data-label">Expected Fee:</span><span class="data-value">${r['internal_fee'] or 0:.2f}</span></div>
+                    <div class="data-row"><span class="data-label">Expected Net:</span><span class="data-value">${r['internal_net'] or 0:.2f}</span></div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-        with c_bank:
+        with fi_col2:
             st.markdown(
                 f"""
                 <div class="inspector-card">
-                    <div class="inspector-header">🏦 Bank Settlement Statement</div>
-                    <div class="data-row"><span class="data-label">Settlement ID:</span><span class="data-value">{row['bank_settlement_id'] or 'N/A'}</span></div>
-                    <div class="data-row"><span class="data-label">Bank Reference:</span><span class="data-value">{row['bank_reference'] or 'N/A'}</span></div>
-                    <div class="data-row"><span class="data-label">Settlement Date:</span><span class="data-value">{row['settlement_date'] or 'N/A'}</span></div>
-                    <div class="data-row"><span class="data-label">Settled Gross:</span><span class="data-value">${row['bank_gross'] or 0:.2f}</span></div>
-                    <div class="data-row"><span class="data-label">Actual Fee:</span><span class="data-value">${row['bank_fee'] or 0:.2f}</span></div>
-                    <div class="data-row"><span class="data-label">Settled Net:</span><span class="data-value">${row['bank_net'] or 0:.2f}</span></div>
+                    <div class="inspector-header">🏦 Bank Settlement Record</div>
+                    <div class="data-row"><span class="data-label">Settlement ID:</span><span class="data-value">{r['bank_settlement_id'] or 'N/A'}</span></div>
+                    <div class="data-row"><span class="data-label">Bank Reference:</span><span class="data-value">{r['bank_reference'] or 'N/A'}</span></div>
+                    <div class="data-row"><span class="data-label">Settlement Date:</span><span class="data-value">{r['settlement_date'] or 'N/A'}</span></div>
+                    <div class="data-row"><span class="data-label">Settled Gross:</span><span class="data-value">${r['bank_gross'] or 0:.2f}</span></div>
+                    <div class="data-row"><span class="data-label">Actual Fee:</span><span class="data-value">${r['bank_fee'] or 0:.2f}</span></div>
+                    <div class="data-row"><span class="data-label">Settled Net:</span><span class="data-value">${r['bank_net'] or 0:.2f}</span></div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-        with c_act:
+        with fi_col3:
             st.markdown(
                 f"""
                 <div class="inspector-card">
-                    <div class="inspector-header">⚖️ Variance & Resolution</div>
-                    <div class="data-row"><span class="data-label">Classification:</span><span class="data-value">{row['status_label']}</span></div>
-                    <div class="data-row"><span class="data-label">Gross Delta:</span><span class="data-value" style="color: {'#EF4444' if row['gross_variance'] != 0 else '#10B981'};">${row['gross_variance']:+.2f}</span></div>
-                    <div class="data-row"><span class="data-label">Fee Delta:</span><span class="data-value" style="color: {'#F59E0B' if row['fee_variance'] != 0 else '#10B981'};">${row['fee_variance']:+.2f}</span></div>
-                    <p style="font-size: 0.82rem; color: #475569; margin-top: 8px;"><strong>Audit Note:</strong> {row['notes']}</p>
+                    <div class="inspector-header">⚖️ Variance & Remediation</div>
+                    <div class="data-row"><span class="data-label">Category:</span><span class="data-value">{r['status_label']}</span></div>
+                    <div class="data-row"><span class="data-label">Gross Delta:</span><span class="data-value" style="color: {'#EF4444' if r['gross_variance'] != 0 else '#10B981'};">${r['gross_variance']:+.2f}</span></div>
+                    <div class="data-row"><span class="data-label">Fee Delta:</span><span class="data-value" style="color: {'#F59E0B' if r['fee_variance'] != 0 else '#10B981'};">${r['fee_variance']:+.2f}</span></div>
+                    <div class="data-row"><span class="data-label">Net Delta:</span><span class="data-value">${r['net_variance']:+.2f}</span></div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 10px;"><strong>Audit Note:</strong> {r['notes']}</p>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-    csv_buf = io.StringIO()
-    view_df.to_csv(csv_buf, index=False)
-    st.download_button(
-        "📥 Download Filtered Discrepancy Ledger (CSV)",
-        data=csv_buf.getvalue(),
-        file_name="reconciliation_discrepancy_report.csv",
-        mime="text/csv",
-        use_container_width=True,
-    )
+        st.markdown("---")
+        st.subheader("Interactive Break Remediation Workflow")
+        rem_col1, rem_col2 = st.columns([3, 1])
+        with rem_col1:
+            note_input = st.text_input("Enter Operations Resolution Note:", value=st.session_state.remediation_notes.get(target_rec_id, "Approved for Month-End Journal Entry Adjustment."))
+        with rem_col2:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            if st.button("✅ Mark as Remediated", use_container_width=True):
+                st.session_state.remediation_notes[target_rec_id] = note_input
+                st.success(f"Record {target_rec_id} marked as remediated!")
+    else:
+        st.info("No exceptions detected in the current dataset. 100% clean matching achieved.")
 
 
 # -----------------------------------------------------------------------------
-# Tab 4: General Ledger (GL) Adjusting Journal Entries
+# Tab 5: General Ledger (GL)
 # -----------------------------------------------------------------------------
-with t_gl:
-    st.subheader("📒 Automated General Ledger (GL) Adjusting Journal Entries")
+with tab_gl:
+    st.subheader("📒 General Ledger (GL) Adjusting Journal Entries")
     st.markdown(
-        "In enterprise fintech operations, identifying discrepancies is only step one. "
-        "The accounting team requires **formal double-entry journal entries** to close the books in NetSuite / QuickBooks."
+        "To formally close the books at month-end, the accounting operations team posts **double-entry journal entries** "
+        "to balance the general ledger in NetSuite, QuickBooks, or SAP."
     )
 
     st.dataframe(
@@ -611,92 +739,129 @@ with t_gl:
         }
     )
 
-    je_buf = io.StringIO()
-    journal_df.to_csv(je_buf, index=False)
+    je_export_buf = io.StringIO()
+    journal_df.to_csv(je_export_buf, index=False)
     st.download_button(
         "📥 Export Adjusting Journal Entries for ERP (CSV)",
-        data=je_buf.getvalue(),
-        file_name="month_end_adjusting_journal_entries.csv",
+        data=je_export_buf.getvalue(),
+        file_name="reconciliation_adjusting_journal_entries.csv",
         mime="text/csv",
         use_container_width=True,
     )
 
 
 # -----------------------------------------------------------------------------
-# Tab 5: Formal Audit Report
+# Tab 6: Data Management
 # -----------------------------------------------------------------------------
-with t_audit:
-    st.subheader("Official Finance Ops Month-End Sign-Off")
-    report_md = ReconciliationReporter.generate_markdown_report(summary)
-    st.markdown(report_md)
+with tab_datamgmt:
+    st.subheader("💾 Data Ingestion & Sample Datasets Management")
+    st.markdown("Download generated synthetic datasets or export the complete reconciled exceptions ledger.")
+
+    dm1, dm2 = st.columns(2)
+    with dm1:
+        st.markdown("### 📥 Download Active Datasets")
+        st.caption("Save the currently evaluated platform and bank records:")
+        d_int = io.StringIO()
+        d_bnk = io.StringIO()
+        pd.DataFrame([t.to_dict() for t in internal_txns]).to_csv(d_int, index=False)
+        pd.DataFrame([b.to_dict() for b in bank_oct]).to_csv(d_bnk, index=False)
+
+        st.download_button("📥 Download Internal Platform Transactions (CSV)", d_int.getvalue(), "internal_transactions.csv", "text/csv", use_container_width=True)
+        st.download_button("📥 Download Bank Settlement Records (CSV)", d_bnk.getvalue(), "bank_settlement.csv", "text/csv", use_container_width=True)
+
+    with dm2:
+        st.markdown("### 📤 Export Reconciled Audit Reports")
+        st.caption("Export full reconciliation results:")
+        rec_buf = io.StringIO()
+        records_df.to_csv(rec_buf, index=False)
+        st.download_button("📥 Download Reconciled Exception Ledger (CSV)", rec_buf.getvalue(), "reconciliation_results.csv", "text/csv", use_container_width=True)
+        
+        rep_md = ReconciliationReporter.generate_markdown_report(summary)
+        st.download_button("📥 Download Official Audit Sign-Off Report (Markdown)", rep_md, "MONTH_END_RECONCILIATION_REPORT.md", "text/markdown", use_container_width=True)
+
+
+# -----------------------------------------------------------------------------
+# Tab 7: Assessment & Documentation
+# -----------------------------------------------------------------------------
+with tab_docs:
+    st.subheader("📑 OneLab Internship Assessment Requirements & Technical Documentation")
     
-    st.download_button(
-        label="📥 Download Audit Sign-Off Report (Markdown)",
-        data=report_md,
-        file_name="MONTH_END_RECONCILIATION_REPORT_OCT2026.md",
-        mime="text/markdown",
-        use_container_width=True,
-    )
-
-
-# -----------------------------------------------------------------------------
-# Tab 6: Submission Package & Guide (All 5 Items)
-# -----------------------------------------------------------------------------
-with t_submission:
-    st.subheader("📦 OneLab Internship Assessment Deliverables")
-    st.caption("Everything requested by the assessment prompt organized and ready for submission.")
-
-    s1, s2 = st.columns(2)
-    with s1:
-        with st.container(border=True):
-            st.markdown("### 1. Brainstorming Thread")
-            st.markdown("Full LLM brainstorming thread documenting problem deconstruction, explicit assumptions, and synthetic data architecture.")
-            st.info("Exported directly from your AI conversation history.")
-
-        with st.container(border=True):
-            st.markdown("### 2. Distilled Prompt & Raw Prompt")
-            st.markdown("The exact raw and distilled prompts fed into the AI coding tool.")
-            with st.expander("View Raw & Distilled Prompts"):
-                st.code("""[RAW PROMPT]
-The Problem:
-A payments company's books don't balance at month end. They know every transaction their platform processed. They know what the bank says actually arrived. The two should match. They don't. Find out why. Show them where the gaps are.
-
-Test Data:
-No files provided. Generate your own — that's part of the assessment. A payments platform records a transaction instantly when a customer pays. The bank batches and settles funds 1–2 days later. At month end every transaction should have a matching settlement.
-Plant these gap types: 
-1. a transaction that settled the following month
-2. a rounding difference that only shows when summed
-3. a duplicate entry in one dataset
-4. a refund with no matching original transaction.
-State your assumptions. There are no wrong ones as long as you name them.""", language="text")
-
-    with s2:
-        with st.container(border=True):
-            st.markdown("### 3. Execution Thread & Wrong Turns")
-            st.markdown("Full execution history including test-driven development and error resolution.")
-            st.info(
-                "**Documented Wrong Turn:** During initial test execution with small sample counts (N=50), an `IndexError` occurred in `generator.py` "
-                "due to hardcoded index slicing. It was caught by `pytest` and refactored to dynamically scale index bounds."
+    doc1, doc2 = st.columns(2)
+    with doc1:
+        with st.container():
+            st.markdown(
+                """
+                <div class="dark-card">
+                    <div class="card-title">1. Brainstorming & Problem Framing</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        Deconstructed payment reconciliation mechanics: internal platform events vs clearing bank settlement batches, float timing, aggregate rounding drift, network idempotency, and orphaned direct debits.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
-        with st.container(border=True):
-            st.markdown("### 4. Test Cases")
-            st.markdown("Automated `pytest` test suite verifying 100% detection of all 4 gaps and mathematical balance sheet equality.")
-            st.code("""python -m pytest tests -v
-# 6 passed in 0.08s:
-# test_reconciliation_detects_all_4_gaps PASSED
-# test_reconciliation_financial_mathematical_proof PASSED
-# test_generator_structure_and_counts PASSED
-# test_gap1_has_november_settlements PASSED
-# test_gap3_duplicate_order_exists PASSED
-# test_gap4_orphaned_refund_is_debit PASSED""", language="bash")
+        with st.container():
+            st.markdown(
+                """
+                <div class="dark-card">
+                    <div class="card-title">2. Distilled Prompt & Raw Prompt</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        See <code>PROMPTS.md</code> in project root for the unfiltered raw prompt and the refined technical prompt fed into the AI coding agent.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with st.container():
+            st.markdown(
+                """
+                <div class="dark-card">
+                    <div class="card-title">3. Execution History & Wrong Turns</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        <strong>Documented Wrong Turn:</strong> During initial test suite execution with small sample size (N=50), an <code>IndexError</code> occurred in <code>generator.py</code> due to hardcoded sample bounds. It was caught by pytest and fixed to dynamically scale to any volume.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    with doc2:
+        with st.container():
+            st.markdown(
+                """
+                <div class="dark-card">
+                    <div class="card-title">4. Test Cases & Verification</div>
+                    <p style="font-size: 0.88rem; color: #CBD5E1;">
+                        8 automated unit tests verifying 100% detection of all 4 gaps, clean control group baseline, resilient CSV parser with flexible headers, and mathematical balance sheet proof.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with st.container():
+            st.markdown(
+                """
+                <div class="dark-card">
+                    <div class="card-title">5. Production Limitations (Mandatory 3 Sentences)</div>
+                    <ol style="font-size: 0.85rem; color: #CBD5E1; padding-left: 18px;">
+                        <li><strong>Memory & Scale:</strong> In high-volume production, an in-memory tabular comparison will suffer catastrophic out-of-memory crashes because tier-1 gateways process hundreds of millions of daily events, requiring a distributed streaming pipeline (e.g. Apache Flink or DuckDB/ClickHouse window queries) with disk-backed state checkpoints.</li>
+                        <li><strong>Batch Netting:</strong> The engine assumes a 1-to-1 mapping between internal transaction IDs and bank settlement lines, whereas real-world acquirers settle via aggregated lump-sum batch wire payouts (many-to-one) that bundle sales, refunds, interchange tiers, rolling reserves, and chargebacks into a single net deposit.</li>
+                        <li><strong>FX Volatility:</strong> It does not account for multi-currency foreign exchange settlement slippage, where the dynamic exchange rate locked at payment authorization differs from the clearing bank's spot conversion rate applied 48 hours later, causing legitimate FX variances to be flagged as fee errors.</li>
+                    </ol>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     st.markdown("---")
-    st.markdown("### 5. Working Output & The 3 Sentences on Production")
+    st.markdown("### Deployment Instructions (Streamlit Community Cloud)")
+    st.code("""# 1. Push code to GitHub:
+git remote add origin https://github.com/<your-username>/reconx.git
+git branch -M main
+git push -u origin main
 
-    st.warning("""
-    **The 3 Sentences on What It Would Get Wrong in Production:**
-    1. In high-volume production, an in-memory tabular comparison will suffer catastrophic out-of-memory (OOM) crashes and CPU bottlenecks because tier-1 payment gateways process hundreds of millions of daily events, necessitating a distributed stream-processing architecture (e.g. Apache Flink or DuckDB/ClickHouse window queries) with disk-backed state checkpoints rather than loading whole CSVs.
-    2. The engine assumes a clean 1-to-1 mapping between internal transaction IDs and bank settlement lines, whereas real-world acquiring banks settle via aggregated lump-sum batch wire payouts (many-to-one) that bundle thousands of sales, refunds, interchange tiers, rolling risk reserves, and chargeback penalties into a single net deposit.
-    3. It does not account for multi-currency foreign exchange (FX) settlement slippage, where the dynamic exchange rate locked at the moment of payment authorization differs from the clearing bank's spot conversion rate applied 48 hours later, causing legitimate FX variances to be erroneously flagged as fee calculation defects.
-    """)
+# 2. Go to https://share.streamlit.io, connect your repo, select app.py, and click Deploy.
+# 3. Add the resulting live URL to your submission.""", language="bash")

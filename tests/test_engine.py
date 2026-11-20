@@ -3,10 +3,11 @@ from decimal import Decimal
 from reconx.generator import SyntheticDataGenerator
 from reconx.engine import ReconciliationEngine
 from reconx.models import DiscrepancyType
+from reconx.parser import parse_internal_csv, parse_bank_csv
 
 
 def test_reconciliation_detects_all_4_gaps():
-    gen = SyntheticDataGenerator(seed=42, base_count=200)
+    gen = SyntheticDataGenerator(seed=42, base_count=200, plant_gaps=True)
     internal, bank_oct, bank_all, metadata = gen.generate()
 
     engine = ReconciliationEngine(cutoff_date=date(2026, 10, 31))
@@ -47,7 +48,7 @@ def test_reconciliation_financial_mathematical_proof():
     Verifies that the books are 100% balanced once the 4 gaps are identified:
     Internal Gross - Duplicates - Next Month Settled + Orphaned Debits == October Bank Gross
     """
-    gen = SyntheticDataGenerator(seed=123, base_count=500)
+    gen = SyntheticDataGenerator(seed=123, base_count=500, plant_gaps=True)
     internal, bank_oct, bank_all, _ = gen.generate()
 
     engine = ReconciliationEngine(cutoff_date=date(2026, 10, 31))
@@ -69,3 +70,49 @@ def test_reconciliation_financial_mathematical_proof():
     )
     assert reconstructed_bank_gross == summary.total_bank_gross
 
+
+def test_clean_control_group_zero_gaps():
+    """Verifies that when plant_gaps=False, 100% of transactions match cleanly."""
+    gen = SyntheticDataGenerator(seed=77, base_count=150, plant_gaps=False)
+    internal, bank_oct, bank_all, metadata = gen.generate()
+
+    engine = ReconciliationEngine(cutoff_date=date(2026, 10, 31))
+    records, summary = engine.reconcile(
+        internal_txns=internal,
+        bank_records=bank_oct,
+        future_bank_records=bank_all,
+    )
+
+    assert summary.match_rate_pct == 100.0
+    assert summary.matched_count == len(internal)
+    assert summary.settled_following_month_count == 0
+    assert summary.rounding_variance_count == 0
+    assert summary.duplicate_internal_count == 0
+    assert summary.orphaned_refund_count == 0
+    assert summary.gross_variance == Decimal("0.00")
+    assert summary.is_fully_explained is True
+
+
+def test_flexible_csv_parser_and_inference():
+    """Verifies that the parser handles non-standard column headers and calculates missing fees."""
+    internal_csv = """Transaction ID,Order,Gross,Status
+TXN_CUSTOM_01,ORD_991,100.00,SUCCESS
+TXN_CUSTOM_02,ORD_992,200.00,SUCCESS
+"""
+    bank_csv = """Bank Reference,Settlement Date,Settled Amount,Fee,Net Amount
+TXN_CUSTOM_01,2026-10-10,100.00,2.15,97.85
+TXN_CUSTOM_02,2026-10-11,200.00,4.30,195.70
+"""
+    parsed_internal = parse_internal_csv(internal_csv)
+    parsed_bank = parse_bank_csv(bank_csv)
+
+    assert len(parsed_internal) == 2
+    assert len(parsed_bank) == 2
+    assert parsed_internal[0].gross_amount == Decimal("100.00")
+    assert parsed_internal[0].expected_fee == Decimal("2.15")  # inferred automatically
+    assert parsed_bank[1].bank_fee == Decimal("4.30")
+
+    engine = ReconciliationEngine(cutoff_date=date(2026, 10, 31))
+    records, summary = engine.reconcile(parsed_internal, parsed_bank)
+    assert summary.matched_count == 2
+    assert summary.match_rate_pct == 100.0
